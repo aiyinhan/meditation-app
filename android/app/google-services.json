@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "751250491294",
+    "project_id": "umfyp-c5a35",
+    "storage_bucket": "umfyp-c5a35.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:751250491294:android:7f2f65ea11d5e0f924788f",
+        "android_client_info": {
+          "package_name": "HanAiYin.meditation"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "751250491294-l64nmfj0rs38rokudaim6peobih9i0a2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAke_osJx1XFouSwA_0Zd0F9V0b5H58brY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "751250491294-l64nmfj0rs38rokudaim6peobih9i0a2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
