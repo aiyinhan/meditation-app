@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meditation/pages/forgotpass.dart';
 import 'package:meditation/pages/homePage.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import '../controllers/auth_controller.dart';
 
 
 
@@ -21,10 +22,10 @@ class _loginpageState extends State<loginpage> {
   //text editing controller
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final AuthController _authController = AuthController();
 
-  //firebase (get current user)
-  final _auth =FirebaseAuth.instance;
   bool showSpinner =false;
+  bool obscureText = true;
 
   @override
   void initState() {
@@ -33,17 +34,6 @@ class _loginpageState extends State<loginpage> {
     //getCurrentUser();
   }
 
-
-  // void getCurrentUser() async{ //have sign in
-  //   try{
-  //     final user = await _auth.currentUser; //response when user registered
-  //     if (user !=null){
-  //       User loggedInUser = user;
-  //     }
-  //   } catch (e){
-  //     print(e);
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -56,20 +46,22 @@ class _loginpageState extends State<loginpage> {
             child:SingleChildScrollView(
               child: Column(
                 children:  [
-                  SizedBox(height: 10),
+
                   Icon(
                     Icons.lock,
-                    size: 50,
+                    size: 30,
                   ),
                   //text
+                  SizedBox(height: 10),
                   Text(
-                    'Login',
+                    "NeuroMedita",
                     style: TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
                       fontFamily: 'Alegreya',
-                      fontSize: 40,
+                      letterSpacing: 4,
                     ),
                   ),
-
                   SizedBox(height: 15),
 
                   //email text field
@@ -77,14 +69,46 @@ class _loginpageState extends State<loginpage> {
                     controller: emailController,
                     hintText: 'Email',
                     obscureText: false,
+
                   ),
                   SizedBox(height: 10),
 
                   //password
-                  MyTextField(
-                    controller: passwordController,
-                    hintText: 'Password',
-                    obscureText: true,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    child: TextField(
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontFamily: 'Alegreya',
+                      ),
+                      controller: passwordController,
+                      obscureText: obscureText,
+                      decoration: InputDecoration(
+                        suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                obscureText = !obscureText;
+                              });
+                            },
+                            icon: Icon(Icons.remove_red_eye),
+                          ),
+                        hintText: 'Password',
+                        hintStyle: TextStyle(
+                          fontSize: 23,
+                          color: Colors.grey[600],
+                        ),
+                        contentPadding: EdgeInsets.all(10),
+                        enabledBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color(0xFF8E97FD),
+                            width: 2.0,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
 
                   //forgot password?
@@ -118,18 +142,18 @@ class _loginpageState extends State<loginpage> {
                         showSpinner=true;
                       });
                       try {
-                        final user = await _auth.signInWithEmailAndPassword(
-                            email: emailController.text,
-                            password: passwordController.text);
+                        _authController.loginUser(email:  emailController.text, password: passwordController.text);
                         Navigator.pushNamed(context,homePage.id);
                         setState(() {
                           showSpinner=false;
                         });
                       }on FirebaseAuthException catch(e){
-                        print(e);
                         showDialog(context: context, builder: (BuildContext context){
                           return AlertDialog(
-                            content: Text(e.message.toString()),
+                            content: Padding(
+                              padding: const EdgeInsets.only(bottom: 20),
+                              child: Text(e.message.toString()),
+                            ),
                             contentTextStyle: TextStyle(
                               fontSize: 20,
                               color: Colors.black,
@@ -170,7 +194,6 @@ class _loginpageState extends State<loginpage> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          //Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterPage()));
                           Navigator.pushNamed(context, RegisterPage.id);
                         },
                         child: Text(

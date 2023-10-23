@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 
 class moodFace extends StatelessWidget {
   final String emoji;
-  const moodFace({Key? key , required this.emoji}) : super(key: key);
+  final Color color;
+  const moodFace({Key? key , required this.emoji, required this.color}) : super(key: key);
 
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white38,
+        color: color,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Padding(

@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:meditation/pages/ProfilePage.dart';
 import 'package:meditation/pages/homePage.dart';
 import 'package:meditation/pages/reminderPage.dart';
+import '../music_service.dart';
 
 class ProgressPage extends StatefulWidget {
   const ProgressPage({Key? key}) : super(key: key);
@@ -12,6 +15,45 @@ class ProgressPage extends StatefulWidget {
 }
 
 class _ProgressPageState extends State<ProgressPage> {
+  int _totalDurationInSeconds = 0; // Define it here
+  int _totalCompletedSessions = 0;
+
+  Future<int> _fetchMusicDuration() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      return await MusicService.fetchTotalMusicDuration(user.uid);
+    }
+    return 0;
+  }
+
+  void fetchBreathingExerciseData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot snapshot =
+      await FirebaseFirestore.instance.collection('RegisterData')
+          .doc(user.uid)
+          .get();
+      final docRef = FirebaseFirestore.instance
+          .collection('RegisterData')
+          .doc(user.uid)
+          .collection('breathing_exercises')
+          .doc('breathing_data');
+
+      final docSnapshot = await docRef.get();
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data() as Map<String, dynamic>;
+        setState(() {
+          _totalDurationInSeconds = data['total_duration'] ?? 0;
+          _totalCompletedSessions = data['total_completed_sessions'] ?? 0;
+        });
+      }
+    }
+  }
+  @override
+  void initState() {
+    super.initState();
+    fetchBreathingExerciseData(); // Call the function to fetch data
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,22 +123,41 @@ class _ProgressPageState extends State<ProgressPage> {
                 //music container
                 Container(
                   width: 320,
-                  height:150,
+                  height: 150,
                   decoration: BoxDecoration(
                     color: Colors.white38,
                     border: Border.all(color: Colors.black),
                     borderRadius: BorderRadius.circular(30),
                   ),
-                  child: const Column(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: 55, top: 25, bottom: 30),
-                        child: Row(
+                  child: FutureBuilder<int>(
+                    future: _fetchMusicDuration(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        final musicDuration = snapshot.data ?? 0;
+                        return Column(
                           children: [
-                            Icon(
-                              Icons.timer,),
+                            Padding(
+                              padding: EdgeInsets.only(left: 55, top: 25, bottom: 30),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.timer),
+                                  Text(
+                                    'Mindful Minutes',
+                                    style: TextStyle(
+                                      fontFamily: 'Alegreya',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 25,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                             Text(
-                              'Mindful Minutes',
+                              "$musicDuration min",
                               style: TextStyle(
                                 fontFamily: 'Alegreya',
                                 fontWeight: FontWeight.bold,
@@ -104,23 +165,12 @@ class _ProgressPageState extends State<ProgressPage> {
                               ),
                             ),
                           ],
-                        ),
-                      ),
-
-                      //update the duration of session
-                      Text(
-                        "50min",
-                        style: TextStyle(
-                          fontFamily: 'Alegreya',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 25,
-                      ),
-                      ),
-                    ],
+                        );
+                      }
+                    },
                   ),
                 ),
-
-                SizedBox(height: 40,),
+                SizedBox(height: 40),
 
                 //exercise
                 const Text(
@@ -144,7 +194,7 @@ class _ProgressPageState extends State<ProgressPage> {
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(color: Colors.black),
                   ),
-                  child: const Column(
+                  child: Column(
                     children: [
                       Padding(
                         padding: EdgeInsets.only(left: 55, top: 25, bottom: 20),
@@ -164,7 +214,7 @@ class _ProgressPageState extends State<ProgressPage> {
                         ),
                       ),
                       Text(
-                        "50min",
+                        "$_totalDurationInSeconds seconds",
                         style: TextStyle(
                           fontFamily: 'Alegreya',
                           fontWeight: FontWeight.bold,
@@ -200,7 +250,7 @@ class _ProgressPageState extends State<ProgressPage> {
 
                       //update the duration of session
                       Text(
-                        "1",
+                        "$_totalCompletedSessions sessions",
                         style: TextStyle(
                           fontFamily: 'Alegreya',
                           fontWeight: FontWeight.bold,

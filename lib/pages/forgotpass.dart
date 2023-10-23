@@ -121,8 +121,7 @@ class _forgotPassState extends State<forgotPass> {
                           padding: EdgeInsets.all(15),
                           onPressed: () async {
                             try {
-                              await _auth.sendPasswordResetEmail(
-                                  email: emailController.text.trim());
+                              await _auth.sendPasswordResetEmail(email:emailController.text.trim());
                               showDialog(
                                   context: context,
                                   builder: (context) {

@@ -26,14 +26,28 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.2
-  firebase_auth: ^4.6.2
+  firebase_auth: ^4.7.2
   modal_progress_hud_nsn: ^0.4.0
-  cloud_firestore: ^4.8.0
+  cloud_firestore: ^4.8.4
   email_validator: ^2.0.1
   flutter_material_pickers: ^3.5.0
   firebase_storage: ^11.2.2
   just_audio: ^0.9.34
   video_player: ^2.6.1
+  audioplayers: ^5.1.0
+  chewie: ^1.7.0
+  shared_preferences: ^2.2.0
+  path_provider: ^2.0.15
+  fl_chart: ^0.63.0
+  syncfusion_flutter_datepicker: ^22.2.10
+  intl: ^0.18.1
+  flip_card: ^0.7.0
+  quiver: ^3.2.1
+  sudoku_solver_generator: ^2.1.0+1
+  http: ^1.1.0
+  flutter_local_notifications: ^15.1.1
+  dio: ^5.3.3
+  workmanager: ^0.5.2
 
 
 dev_dependencies:
@@ -58,8 +72,8 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - images/sample.png
-    - images/music therapy.jpg
+    - images/
+    - gameImage/
 
   fonts:
     - family: Source Sans Pro
