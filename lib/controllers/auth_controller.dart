@@ -5,6 +5,8 @@ class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  final FirebaseAuth auth = FirebaseAuth.instance;
+
   Future<void> registerUser({
     required String email,
     required String password,
@@ -27,10 +29,10 @@ class AuthController {
     });
   }
 
-  Future <void> loginUser({
+  Future<void> loginUser({
     required String email,
     required String password,
-}) async{
+  }) async {
     await _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 }

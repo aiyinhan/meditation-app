@@ -1,5 +1,3 @@
-
-
 import 'BlockChar.dart';
 
 class BoxInner {
@@ -11,10 +9,9 @@ class BoxInner {
   // declare method used
   setFocus(int index, Direction direction) {
     List<BlokChar> temp;
-
-    if (direction == Direction.Horizontal) {
+    if (direction == Direction.Horizontal) { 
       temp = blokChars
-          .where((element) => element.index! ~/ 3 == index ~/ 3)
+          .where((element) => element.index! ~/ 3 == index ~/ 3) //element is blockChar instance
           .toList();
     } else {
       temp = blokChars
@@ -48,7 +45,7 @@ class BoxInner {
       if (blokCharsBox.length == 1 && temp.isEmpty) blokCharsBox.clear();
 
       temp.addAll(blokCharsBox);
-    }
+    } //if only one character with the given text input and temp is empty,clear the box
 
     temp.where((element) => element.text == textInput).forEach((element) {
       element.isExist = true;

@@ -22,7 +22,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   final ProfileController _profileController = ProfileController();
 
-
   void _loadUserInfo() async {
     UserModel? user = await _profileController.getUserInfo();
     setState(() {
@@ -35,20 +34,16 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _updateProfile() async {
 
-      UserModel user = UserModel(
-        name: nameController.text,
-        email: emailController.text,
-        age: ageController.text,
-        bodyWeight: bodyWeightController.text,
-      );
 
-      // Call the updateProfile function and get the message
-      String message = await _profileController.updateProfile(user);
-
-      // Display the message using an alert dialog or snackbar
-      showMessage(message);
-    }
-
+    UserModel user = UserModel(
+      name: nameController.text.trim(),
+      email: emailController.text.trim(),
+      age: ageController.text.trim(),
+      bodyWeight: bodyWeightController.text.trim(),
+    );
+    String message = await _profileController.updateProfile(user);
+    showMessage(message);
+  }
 
   void showMessage(String message) {
     showDialog(
@@ -151,9 +146,12 @@ class _ProfilePageState extends State<ProfilePage> {
         backgroundColor: Color(0xFF8E97FD),
         toolbarHeight: 60,
         title: Text('Edit Profile'),
-        leading: IconButton(icon: Icon(Icons.close), onPressed: () {
-          Navigator.pushNamed(context, homePage.id);
-        },),
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: () {
+            Navigator.pushNamed(context, homePage.id);
+          },
+        ),
         centerTitle: true,
         titleTextStyle: const TextStyle(
           fontSize: 30,

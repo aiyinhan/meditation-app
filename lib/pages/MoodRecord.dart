@@ -28,13 +28,13 @@ class _MoodRecordState extends State<MoodRecord> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Color(0xFF8E97FD), // <-- SEE HERE
-              onPrimary: Colors.white, // <-- SEE HERE
-              onSurface: Colors.black, // <-- SEE HERE
+              primary: Color(0xFF8E97FD), 
+              onPrimary: Colors.white, 
+              onSurface: Colors.black, 
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                primary: Colors.black, // button text color
+                foregroundColor: Colors.black,
               ),
             ),
           ),
@@ -112,7 +112,7 @@ class _MoodRecordState extends State<MoodRecord> {
                 children:[StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                   .collection('Users')
-                  .doc(user?.uid) // Replace with the actual user ID
+                  .doc(user?.uid) 
                   .collection('MoodRecord')
                   .doc(selectedDate.year.toString())
                   .collection('Months')
@@ -144,7 +144,7 @@ class _MoodRecordState extends State<MoodRecord> {
 
                   moodRecordWidgets.add(
                       Container(
-                        width: 300, // Set your desired width
+                        width: 300, 
                         padding: EdgeInsets.all(10),
                         margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                         decoration: BoxDecoration(
@@ -171,22 +171,22 @@ class _MoodRecordState extends State<MoodRecord> {
                           children: [
                             Text('Mood: $mood',
                             style: TextStyle(
-                              fontSize: 17,
+                              fontSize: 19,
                               fontFamily: 'Alegreya',
                               fontWeight: FontWeight.bold,
                             ),),
                             Text('Reasons: $reasons',
                               style: TextStyle(
-                                fontSize: 17,
+                                fontSize: 18,
                                 fontFamily: 'Source Sans Pro',
-                                fontWeight: FontWeight.w300,
+                                fontWeight: FontWeight.bold,
 
                               ),),
                             Text('Date: ${DateFormat.yMMMMd().format(moodRecordData['date'].toDate())}',
                               style: TextStyle(
-                              fontSize: 17,
+                              fontSize: 18,
                               fontFamily: 'Source Sans Pro',
-                              fontWeight: FontWeight.w300,
+                              fontWeight: FontWeight.bold,
 
                             ),),
                           ],

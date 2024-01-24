@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meditation/components/game_level.dart';
+import 'package:meditation/game/game_level.dart';
 import 'package:meditation/game/mathGame/mathGame.dart';
 import 'package:meditation/pages/mindGame.dart';
 
@@ -15,7 +15,7 @@ class _MathLevelPageState extends State<MathLevelPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[800],
+      backgroundColor: Colors.blue[700],
       body: SafeArea(
         child: Column(
           children: [
@@ -66,7 +66,7 @@ class _MathLevelPageState extends State<MathLevelPage> {
                       ),
                     ),
                   ),
-
+        
                   const SizedBox(
                     height: 15,
                   ),
@@ -99,60 +99,62 @@ class _MathLevelPageState extends State<MathLevelPage> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(25.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Choose the Level',
-                        style: TextStyle(
-                          fontSize: 25,
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Text(
+                          'Choose the Level',
+                          style: TextStyle(
+                            fontSize: 25,
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          
+                          ),
                         ),
-                      ),
-                      SizedBox(
-                        height: 30,
-                      ),
-
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => Math(
-                                  difficultyLevel: MathLevel.easy,
-                                ),
-                              ));
-                        },
-                        child:gameLevel(Leveltext: 'Easy', colors: Colors.teal[400],)
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      Math(difficultyLevel: MathLevel.medium)));
-                        },
-                        child: gameLevel(Leveltext: 'Medium',colors: Colors.orangeAccent)
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      Math(difficultyLevel: MathLevel.hard)));
-                        },
-                        child: gameLevel(Leveltext: 'Hard',colors: Colors.redAccent)
-                      ),
-                    ],
+                        SizedBox(
+                          height: 30,
+                        ),
+                          
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => Math(
+                                    difficultyLevel: MathLevel.easy,
+                                  ),
+                                ));
+                          },
+                          child:gameLevel(Leveltext: 'Easy', colors: Colors.teal[300],)
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        Math(difficultyLevel: MathLevel.medium)));
+                          },
+                          child: gameLevel(Leveltext: 'Medium',colors: Colors.amber[300])
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        Math(difficultyLevel: MathLevel.hard)));
+                          },
+                          child: gameLevel(Leveltext: 'Hard',colors: Colors.red[400])
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

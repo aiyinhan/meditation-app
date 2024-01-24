@@ -10,17 +10,12 @@ class Piece {
     required this.type
   });
 
-  //the piece is just a list of integers
   List<int> position=[];
 
-  //color of tetris piece
   Color get color{
     return tetrominoColor[type]??
         const Color(0xffffffff);
   }
-
-
-  //generate the shapes integers
 
   // -30  -29  -28  -27  -26  -25  -24  -23  -22  -21
   // -20  -19  -18  -17  -16  -15   -14  -13   -12 -11
@@ -110,7 +105,7 @@ class Piece {
         break;
       case Direction.down:
         for(int i=0;i<position.length;i++){
-          position[i] +=rowLength;
+          position[i] +=rowLength; //+10
         }
         break;
       default :
@@ -156,10 +151,10 @@ class Piece {
           //  X
           //get the new position
             {newPosition=[
-              position[1]-1,
-              position[1],
-              position[1]+1 ,
-              position[1]+rowLength-1
+              position[1]-1, //-17
+              position[1], //-16
+              position[1]+1 , //-15
+              position[1]+rowLength-1 //-7
             ];
             if(piecePositionIsValid(newPosition)){
               //update position

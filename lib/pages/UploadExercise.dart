@@ -7,8 +7,8 @@ import 'package:meditation/controllers/video_controller.dart';
 import 'package:meditation/pages/breathingExercise.dart';
 
 class UploadExercise extends StatefulWidget {
-   UploadExercise ({Key? key}) : super(key: key);
-  static String id ='Upload Exercise';
+  UploadExercise({Key? key}) : super(key: key);
+  static String id = 'Upload Exercise';
 
   @override
   State<UploadExercise> createState() => _UploadExerciseState();
@@ -17,6 +17,40 @@ class UploadExercise extends StatefulWidget {
 class _UploadExerciseState extends State<UploadExercise> {
   final VideoController _uploadVideoController = VideoController();
   bool showSpinner = false;
+
+  void _showErrorMessage(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Error',
+            style: TextStyle(
+              fontFamily: 'Alegreya',
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          content: Text(
+            message,
+            style: TextStyle(
+              fontFamily: 'Alegreya',
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +127,12 @@ class _UploadExerciseState extends State<UploadExercise> {
                         backgroundColor: Colors.blue[200],
                       ),
                       onPressed: () async {
+                        if (_uploadVideoController.videoFile == null ||
+                            _uploadVideoController.title.isEmpty) {
+                          _showErrorMessage(
+                              'Please select a video and enter a title.');
+                          return;
+                        }
                         setState(() {
                           showSpinner = true;
                         });
@@ -102,14 +142,16 @@ class _UploadExerciseState extends State<UploadExercise> {
                             context: context,
                             builder: (BuildContext context) {
                               return AlertDialog(
-                                title: Text('Success',
+                                title: Text(
+                                  'Success',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                     fontFamily: 'Alegreya',
                                   ),
                                 ),
-                                content: Text('Video uploaded successfully.',
+                                content: Text(
+                                  'Video uploaded successfully.',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -118,7 +160,8 @@ class _UploadExerciseState extends State<UploadExercise> {
                                 ),
                                 actions: <Widget>[
                                   TextButton(
-                                    child: Text('OK',
+                                    child: Text(
+                                      'OK',
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -126,7 +169,8 @@ class _UploadExerciseState extends State<UploadExercise> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      Navigator.pushNamed(context, breathingExercise.id);
+                                      Navigator.pushNamed(
+                                          context, breathingExercise.id);
                                     },
                                   ),
                                 ],
@@ -134,24 +178,27 @@ class _UploadExerciseState extends State<UploadExercise> {
                             },
                           );
                         } catch (error) {
-                          // Show error message
+                          //show error
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
                               return AlertDialog(
-                                title: Text('Error',
+                                title: Text(
+                                  'Error',
                                   style: TextStyle(
                                     fontSize: 23,
                                     fontWeight: FontWeight.bold,
                                     fontFamily: 'Alegreya',
-                                  ),),
+                                  ),
+                                ),
                                 content: Text(
                                   'An error occurred while uploading the vieo. Please try again.: $error',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                     fontFamily: 'Alegreya',
-                                  ),),
+                                  ),
+                                ),
                                 actions: <Widget>[
                                   TextButton(
                                     child: Text('OK'),
@@ -189,4 +236,3 @@ class _UploadExerciseState extends State<UploadExercise> {
     );
   }
 }
-

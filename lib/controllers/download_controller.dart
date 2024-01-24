@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 
 enum DownloadState { notDownloaded, downloading, downloaded, canceled, failed }
-
 
 class DownloadController extends ChangeNotifier {
   final String songUrl;
@@ -24,22 +24,22 @@ class DownloadController extends ChangeNotifier {
   Future<void> startDownload() async {
     try {
       downloadState = DownloadState.downloading;
-      final songPath = await downloadAndSaveSong(
-          songUrl, songName, cancelToken);
+      cancelToken = CancelToken();
+
+      final songPath =
+          await downloadAndSaveSong(songUrl, songName, cancelToken);
 
       if (cancelToken.isCancelled) {
-        downloadState = DownloadState.canceled;
+        downloadState =
+            DownloadState.notDownloaded; //from cancelled to notDownloaded
         await _downloadCompleter.future;
       } else {
         downloadState = DownloadState.downloaded;
-        // Add the downloaded song name to the list
         downloadedSongs.add(songName);
-        print(downloadedSongs);
         _downloadCompleter.complete();
       }
     } catch (e) {
       downloadState = DownloadState.failed;
-      //_downloadCompleter.completeError(e);
       errorMessage = 'Download failed: $e';
     }
   }
@@ -54,17 +54,23 @@ class DownloadController extends ChangeNotifier {
     downloadState = DownloadState.notDownloaded;
   }
 
-
-  Future<String> _getFilePath(String songName) async {
+  Future<String> _getMusicDirectoryPath() async {
+    String uid = FirebaseAuth.instance.currentUser!.uid;
+    print("uid$uid");
     final dir = await getApplicationDocumentsDirectory();
-    return "${dir.path}/$songName.mp3";
+    print("uid$dir");
+    return "${dir.path}/music/$uid";
   }
 
-  Future<void> downloadAndSaveSong(String songUrl, String songName,
-      CancelToken cancelToken) async {
+  Future<String> _getFilePath(String songName) async {
+    final dir = await _getMusicDirectoryPath(); // Get the video directory
+    return "$dir/$songName.mp4";
+  }
+
+  Future<void> downloadAndSaveSong(
+      String songUrl, String songName, CancelToken cancelToken) async {
     Dio dio = Dio();
     dio.options.headers["Range"] = "bytes=0-";
-    //Response response = await dio.get(songUrl, options: Options(responseType: ResponseType.bytes));
     String path = await _getFilePath(songName);
     Response response;
     try {
@@ -75,14 +81,14 @@ class DownloadController extends ChangeNotifier {
         onReceiveProgress: (receivedBytes, totalBytes) {
           downloadProgress = receivedBytes / totalBytes;
           notifyListeners();
-          print(downloadProgress);
-
+          if ((downloadProgress * 100).toInt() % 10 == 0) {
+            print((downloadProgress * 100).toInt().toString());
+          }
         },
         deleteOnError: true,
       );
     } catch (e) {
       if (e is DioException && CancelToken.isCancel(e)) {
-        // Handle the download cancellation here
         return;
       } else {
         throw e;
@@ -90,9 +96,12 @@ class DownloadController extends ChangeNotifier {
     }
   }
 }
-List<String> getDownloadedSongs() {
+
+Future<List<String>> getDownloadedSongs() async {
+  final dir = await getApplicationDocumentsDirectory();
+  String uid = FirebaseAuth.instance.currentUser!.uid;
   List<String> downloadedSongs = [];
-  Directory directory = Directory('/data/data/HanAiYin.meditation/app_flutter');
+  Directory directory = Directory('${dir.path}/music/$uid');
   if (directory.existsSync()) {
     List<FileSystemEntity> files = directory.listSync();
     for (FileSystemEntity file in files) {

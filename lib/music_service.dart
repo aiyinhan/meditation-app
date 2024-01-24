@@ -10,7 +10,6 @@ class MusicService {
           .get();
       if (snapshot.exists) {
         Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
-        // Check if the 'music_duration' key exists and return its value as an integer
         if (data != null && data.containsKey('music_duration')) {
           return data['music_duration'] as int;
         } else {

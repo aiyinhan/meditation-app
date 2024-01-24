@@ -8,7 +8,6 @@ import '../components/video_icon.dart';
 import '../controllers/video_controller.dart';
 import 'PlayVideo.dart';
 
-
 class breathingExercise extends StatefulWidget {
   const breathingExercise({Key? key}) : super(key: key);
   static String id = "breathingExercise";
@@ -17,10 +16,8 @@ class breathingExercise extends StatefulWidget {
 }
 
 class _breathingExerciseState extends State<breathingExercise> {
-
   final VideoController _videoController = VideoController();
   bool userRoleFetched = false;
-
 
   void initState() {
     super.initState();
@@ -32,6 +29,33 @@ class _breathingExerciseState extends State<breathingExercise> {
     setState(() {
       userRoleFetched = true;
     });
+  }
+
+  void _showErrorMessage(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Reminder'),
+          content: Text(
+            message,
+            style: TextStyle(
+              fontFamily: 'Alegreya',
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -65,226 +89,193 @@ class _breathingExerciseState extends State<breathingExercise> {
               label: ''),
         ],
       ),
-      body: SingleChildScrollView(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
-            child:
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(
-                children: [
-                  InkWell(
-                    onTap: () {
-                      Navigator.pushNamed(context, homePage.id);
-                    },
-                    child: Icon(Icons.arrow_back, size: 30),
-                  ),
-                  SizedBox(
-                    width: 30,
-                  ),
-                  Text(
-                    'Breathing Exercise',
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Source Sans Pro',
-                    ),
-                  ),
-                  Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, UploadExercise.id);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 20, right: 12, bottom: 20),
-                      child: Icon(
-                        Icons.add_circle_rounded,
-                        color: Colors.black54,
-                        size: 30,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric( horizontal: 10),
-                child: Column(children: [
-                  Container(
-                    width: 600,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40),
-                      color: Colors.orange[100],
-                    ),
+      body: SafeArea(
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverAppBar(
+                automaticallyImplyLeading: false,
+                expandedHeight: 300,
+                backgroundColor: Colors.orange[200],
+                floating: false,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  title: SingleChildScrollView(
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          children: [
-                            SizedBox(
-                              height: 20,
-                            ),
-                            Text(
-                              'Mindfulness',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Alegreya',
-                              ),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8),
-                              child: Text(
-                                'Pratice and develop \n mindfulness',
+                        Padding(
+                          padding: const EdgeInsets.only(left: 5),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Breathing Exercise',
                                 style: TextStyle(
-                                  fontSize: 20,
-                                  //fontWeight: FontWeight.bold,
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.bold,
                                   fontFamily: 'Alegreya',
                                 ),
                               ),
-                            ),
-                          ],
+                              Text(
+                                'Practice and develop mindfulness',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: 'Alegreya',
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        Image.asset(
-                          'images/music.png',
+                        Visibility(
+                          visible: _videoController.userRole == 'admin',
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamed(context, UploadExercise.id);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: Icon(
+                                Icons.add_circle_rounded,
+                                color: Colors.black54,
+                                size: 27,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(height:5),
-                  Divider(
-                    thickness: 2,
-                    color: Colors.black26,
+                  centerTitle: true,
+                  background: Opacity(
+                    opacity: 0.7,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 10, bottom: 70),
+                      child: Image.asset(
+                        'images/music.png',
+                        width: 30,
+                        height: 30,
+                      ),
+                    ),
                   ),
-
-                  StreamBuilder<QuerySnapshot>(
-                    stream: _videoController.video,
-                    builder: (BuildContext context,
-                        AsyncSnapshot<QuerySnapshot> snapshot) {
-                      // Update data
-                      if (snapshot.hasData) {
-                        return ListView.builder(
-                          scrollDirection: Axis.vertical,
-                          shrinkWrap: true,
-                          itemCount: snapshot.data!.docs.length,
-                          itemBuilder: (context, index) {
-                            var document =
-                            snapshot.data!.docs[index]; // 0 to snapshot.data!.docs.length - 1
-                            String title = document['title'];
-                            String docid = document.id;
-                            TextEditingController titleController =
-                            TextEditingController(text: title);
-                            return ListTile(
-                              leading: CircleAvatar(
-                                child: Text(
-                                  '${index + 1}',
-                                  // Add 1 to index to start the list from 1 instead of 0
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                backgroundColor: Color(0xFF1F265E),
-                                // Customize the color of the CircleAvatar
-                              ),
-                              title: Text(
-                                title,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Alegreya',
-                                ),
-                              ),
-                              subtitle: Text(
-                                '2-3min',
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Alegreya',
-                                ),
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    onPressed: () {
-                                      String videoUrl = document['url'];
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => PlayVideo(
-                                            videoUrl: videoUrl,
-                                            title: title,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    icon: Icon(
-                                      Icons.play_circle,
-                                      size: 30,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  // Edit
-                                  Visibility(
-                                    visible: _videoController.userRole == 'admin',
-                                    child: VideoIcon(
-                                      onPressed: () {
-                                        // Update the song metadata in Firestore
-                                        _videoController.updateSongMetadata(
-                                          docid,
-                                          titleController.text,
-                                        );
-                                        Navigator.of(context).pop();
-                                      },
-                                      operationName: 'Edit MetaData',
-                                      titleController: titleController,
-                                      buttonText: 'Update',
-                                      icon: Icons.edit,
-                                    ),
-                                  ),
-                                  // // Delete
-                                  Visibility(
-                                    visible: _videoController.userRole == 'admin',
-                                    child: VideoIcon(
-                                      onPressed: () {
-                                        // Delete the song document from Firestore
-                                        _videoController.deleteSong(docid);
-                                        Navigator.of(context).pop();
-                                      },
-                                      operationName:
-                                      'Are you sure you want to delete this video?',
-                                      titleController: titleController,
-                                      buttonText: 'Delete',
-                                      icon: Icons.delete,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      } else if (snapshot.hasError) {
-                        return Text(
-                          'Error: ${snapshot.error}',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Alegreya',
-                          ),
-                        );
-                      } else {
-                        return CircularProgressIndicator();
-                      }
-                    },
-                  ),
-                ]),
+                ),
               ),
-            ]),
+            ];
+          },
+          body: StreamBuilder<QuerySnapshot>(
+            stream: _videoController.video,
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              // Update data
+              if (snapshot.hasData) {
+                return ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  itemCount: snapshot.data!.docs.length,
+                  itemBuilder: (context, index) {
+                    var document = snapshot.data!
+                        .docs[index]; // 0 to snapshot.data!.docs.length - 1
+                    String title = document['title'];
+                    String docid = document.id;
+                    TextEditingController titleController =
+                        TextEditingController(text: title);
+                    return ListTile(
+                      leading: CircleAvatar(
+                        child: Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        backgroundColor: Color(0xFF1F265E),
+                      ),
+                      title: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Alegreya',
+                        ),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              String videoUrl = document['url'];
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PlayVideo(
+                                    videoUrl: videoUrl,
+                                    title: title,
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: Icon(
+                              Icons.play_circle,
+                              size: 30,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          // Edit
+                          Visibility(
+                            visible: _videoController.userRole == 'admin',
+                            child: VideoIcon(
+                              onPressed: () {
+                                if (titleController.text.isEmpty) {
+                                  _showErrorMessage(
+                                      'Please fill in all fields');
+                                } else {
+                                  _videoController.updateSongMetadata(
+                                    docid,
+                                    titleController.text,
+                                  );
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                              operationName: 'Edit MetaData',
+                              titleController: titleController,
+                              buttonText: 'Update',
+                              icon: Icons.edit,
+                            ),
+                          ),
+                          // // Delete
+                          Visibility(
+                            visible: _videoController.userRole == 'admin',
+                            child: VideoIcon(
+                              onPressed: () {
+                                _videoController.deleteSong(docid);
+                                Navigator.of(context).pop();
+                              },
+                              operationName:
+                                  'Are you sure you want to delete this video?',
+                              titleController: titleController,
+                              buttonText: 'Delete',
+                              icon: Icons.delete,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              } else if (snapshot.hasError) {
+                return Text(
+                  'Error: ${snapshot.error}',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Alegreya',
+                  ),
+                );
+              } else {
+                return CircularProgressIndicator();
+              }
+            },
           ),
         ),
       ),

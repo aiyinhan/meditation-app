@@ -16,7 +16,7 @@ class gameList extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             child: Image.asset(image,
               height: 80,
-              width:90,
+              width:80,
               fit: BoxFit.cover,
             ),
           ),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:meditation/notification_service.dart';
 import 'package:meditation/pages/ProfilePage.dart';
 import 'package:meditation/pages/homePage.dart';
 import 'package:flutter_material_pickers/flutter_material_pickers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz; // Import tz
-
+import 'package:workmanager/workmanager.dart';
 import '../main.dart';
 
 class reminderPage extends StatefulWidget {
@@ -17,81 +19,101 @@ class reminderPage extends StatefulWidget {
 
 class _reminderPageState extends State<reminderPage> {
   bool light = false;
-  TimeOfDay selectedTime = TimeOfDay.now();
+  late TimeOfDay selectedTime = TimeOfDay(hour: 0, minute: 0);
   bool isReminderSaved = false; // Track whether the reminder is saved
-  late tz.Location _local;
+  bool isReminderEnabled = false;
+
+  static tz.TZDateTime _scheduleDaily(TimeOfDay time) {
+    final now = tz.TZDateTime.now(tz.local);
+    //final now = tz.TZDateTime.now(tz.getLocation('Asia/Kuala_Lumpur'));
+    final scheduledDate = tz.TZDateTime(tz.getLocation('Asia/Kuala_Lumpur'),
+        now.year, now.month, now.day, time.hour, time.minute);
+    print("scheduledDate:$scheduledDate");
+    print("now:$now");
+    return scheduledDate.isBefore(now)
+        ? scheduledDate.add(Duration(days: 1))
+        : scheduledDate;
+  }
 
   Future<void> scheduleReminder() async {
-    final now = DateTime.now();
-    final selectedDateTime = DateTime(now.year, now.month, now.day, selectedTime.hour, selectedTime.minute);
-
-    final AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'daily_reminder_channel_id',
-      'Daily Reminder',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-    // Convert selectedDateTime to TZDateTime
-    final scheduledTime = tz.TZDateTime.local(
-      selectedDateTime.year,
-      selectedDateTime.month,
-      selectedDateTime.day,
-      selectedTime.hour,
-      selectedTime.minute,
-    );
-    // Schedule the reminder
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      0, // Notification ID
-      'Daily Reminder', // Title
-      'It\'s time to meditate!', // Body
-      scheduledTime, // Scheduled time as TZDateTime
-      NotificationDetails(android: androidPlatformChannelSpecifics),
-      //androidScheduleMode: androidAllowWhileIdle,
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
+    NotificationService.showScheduledNotification(
+        scheduleDate: _scheduleDaily(selectedTime),
+        title: 'Daily Reminder',
+        body: 'Take a break, breathe, and meditate.\nIt\'s time to Meditate!',
+        payload: "meditation",
+        id: 0);
+    print("selectedtime:$selectedTime");
+    await setReminderSetting(true);
   }
+
   Future<void> cancelReminder() async {
-    // Cancel the reminder by its ID
     await flutterLocalNotificationsPlugin.cancel(0);
+    await setReminderSetting(false);
   }
 
-  void showTimePicker() {
-    showMaterialTimePicker(
+  Future<void> setReminderSetting(bool isEnabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('daily_reminder_enabled', isEnabled);
+  }
+
+  Future<void> getReminderSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isEnabled = prefs.getBool('daily_reminder_enabled') ?? false;
+    setState(() {
+      isReminderEnabled = isEnabled;
+    });
+  }
+
+  Future<void> loadSelectedTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    final storedHour = prefs.getInt('selectedHour');
+    final storedMinute = prefs.getInt('selectedMinute');
+
+    if (storedHour != null && storedMinute != null) {
+      setState(() {
+        selectedTime = TimeOfDay(hour: storedHour, minute: storedMinute);
+      });
+    } else {
+      selectedTime = TimeOfDay.now();
+    }
+  }
+
+  Future<void> saveSelectedTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('selectedHour', selectedTime.hour);
+    await prefs.setInt('selectedMinute', selectedTime.minute);
+  }
+
+  void showTimePicker() async {
+    TimeOfDay? pickedTime = await showMaterialTimePicker(
       context: context,
       selectedTime: selectedTime,
       onChanged: (newTime) {
         setState(() {
           selectedTime = newTime;
+          saveSelectedTime();
         });
       },
     );
+    if (pickedTime != null) {
+      setState(() {
+        selectedTime = pickedTime;
+        saveSelectedTime();
+      });
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    // Initialize _local using tz.initializeTimeZones
-    _local = tz.getLocation('Asia/Kuala_Lumpur'); // Replace 'your_timezone_identifier' with the actual timezone identifier
+    getReminderSetting();
+    loadSelectedTime();
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xFF8E97FD),
-        toolbarHeight: 80,
-        title: Text('Reminder'),
-        titleTextStyle: const TextStyle(
-          fontSize: 35,
-          fontWeight: FontWeight.bold,
-          fontFamily: 'Alegreya',
-        ),
-        centerTitle: true,
-      ),
-      backgroundColor: Color(0xFFDDE0FD),
+      backgroundColor: Color(0xFF8E97FD),
       bottomNavigationBar: BottomNavigationBar(
         items: [
           BottomNavigationBarItem(
@@ -120,158 +142,202 @@ class _reminderPageState extends State<reminderPage> {
               label: ''),
         ],
       ),
-      body: SingleChildScrollView(
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Padding(
-              //   padding: const EdgeInsets.only(left: 20,top: 20),
-              //   child: Text(
-              //     'Use reminders to help from your daily',
-              //     style: TextStyle(
-              //       fontSize: 20,
-              //       color: Colors.grey[600],//0xFF5562F9),
-              //       fontWeight: FontWeight.bold,
-              //       fontFamily: 'Alegreya',
-              //   ),),
-              // ),
-              // Text(
-              //   ' meditation routine',
-              //     style: TextStyle(
-              //       fontSize: 20,
-              //       color: Colors.grey[600],
-              //       fontWeight: FontWeight.bold,
-              //       fontFamily: 'Alegreya',
-              //     ),
-              // ),
-              //
-              SizedBox(height: 50),
-
-              //set reminder
-              Container(
-                width: 380,
-                height: 250,
-                decoration: BoxDecoration(
-                  color: Colors.white70,
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Column(
+      body: SafeArea(
+        child: Column(children: [
+          Padding(
+            padding: const EdgeInsets.all(22.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    SizedBox(height: 40),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    IconButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, homePage.id);
+                        },
+                        icon: Icon(
+                          Icons.arrow_back,
+                          size: 30,
+                          color: Colors.white,
+                        )),
+                    SizedBox(
+                      width: 75,
+                    ),
+                    Text(
+                      " Reminder",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(
+                    30.0,
+                  ),
+                  topRight: Radius.circular(
+                    30.0,
+                  ),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(25.0),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Column(
                         children: [
-                          Text(
-                            'Get daily reminders',
-                            style: TextStyle(
-                              fontSize: 23,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Alegreya',
+                          SizedBox(height: 40),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 20.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Text(
+                                  'Get reminders',
+                                  style: TextStyle(
+                                    fontSize: 23,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Alegreya',
+                                  ),
+                                ),
+                                Transform.scale(
+                                  scale: 1.5,
+                                  child: Switch(
+                                    //activeColor: Colors.green,
+                                    value: isReminderEnabled,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        isReminderEnabled = value;
+                                      });
+                                      if (value) {
+                                        scheduleReminder(); //on
+                                      } else {
+                                        cancelReminder();
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          Transform.scale(
-                            scale: 1.5,
-                            child: Switch(
-                              //activeColor: Colors.green,
-                              value: light,
-                              onChanged: (bool value) {
-                                setState(() {
-                                  light = value;
-                                });
-                              },
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 30, vertical: 10),
+                            margin: const EdgeInsets.symmetric(horizontal: 30),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.5),
+                                  spreadRadius: 2,
+                                  blurRadius: 5,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Select your meditate time',
+                                  style: TextStyle(
+                                    fontSize: 23,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Alegreya',
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    IconButton(
+                                      onPressed: showTimePicker,
+                                      icon: Icon(
+                                        Icons.add_alarm_rounded,
+                                        size: 40,
+                                        color: Colors.indigo[300],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 10),
+                                      child: Text(
+                                        selectedTime.format(context),
+                                        style: TextStyle(
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Alegreya',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    Text(
-                      'What time would you like to mediate?',
-                      style: TextStyle(
-                        fontSize: 23,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Alegreya',
-                      ),
-                    ),
-                    SizedBox(height: 25),
 
-                    //selected time
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF5562F9),
-                          ),
-                          onPressed: showTimePicker,
-                          child: Text(
-                            'Select Time',
-                            style: TextStyle(
-                              fontSize: 20,
+                      SizedBox(height: 100),
+                      //save and close button
+                      Center(
+                        child: SizedBox(
+                          height: 65,
+                          width: 350,
+                          child: MaterialButton(
+                            padding: EdgeInsets.all(15),
+                            onPressed: () {
+                              if (isReminderEnabled) {
+                                //light =true
+                                scheduleReminder();
+                                print('reminder save');
+                                isReminderSaved = true;
+                              } else {
+                                isReminderSaved = false;
+                                cancelReminder();
+                                print("cancel reminder");
+                              }
+                              Navigator.pushNamed(context, homePage.id);
+                            },
+                            color: Color(0xFF8E97FD),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'Save and Close',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'Alegreya',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 25,
+                              ),
                             ),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: Text(
-                            selectedTime.format(context),
-                            style: TextStyle(
-                              fontSize: 25,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Alegreya',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 70),
-
-              //save and close button
-              Center(
-                child: SizedBox(
-                  height: 65,
-                  width: 350,
-                  child: MaterialButton(
-                    padding: EdgeInsets.all(15),
-                    onPressed: () {
-                      if (light) { //light =true
-                        // Save the reminder logic here
-                        scheduleReminder();
-                        print('reminder save');
-                        isReminderSaved = true;// Set the flag to indicate that the reminder is saved
-
-                      } else {
-                        // Handle case where reminder is not saved
-                        isReminderSaved = false;
-                        cancelReminder();
-                      }
-                      Navigator.pushNamed(context, homePage.id);
-                    },
-                    color: Color(0xFF8E97FD),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Text(
-                      'Save and Close',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'Alegreya',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 25,
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          )
+        ]),
       ),
     );
   }

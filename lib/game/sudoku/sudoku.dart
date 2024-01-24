@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:meditation/game/sudoku/BlockChar.dart';
 import 'package:meditation/pages/mindGame.dart';
@@ -22,7 +21,7 @@ class sudoku extends StatefulWidget {
     required this.difficultyLevel,
   });
 
-  static String id ="sudoku";
+  static String id = "sudoku";
 
   @override
   State<sudoku> createState() => _sudokuState();
@@ -35,19 +34,17 @@ class _sudokuState extends State<sudoku> {
   String? tapBoxIndex;
   late DifficultyLevel difficultyLevel;
 
-
   @override
   void initState() {
     difficultyLevel = widget.difficultyLevel;
     generateSudoku(difficultyLevel);
-
-    // TODO: implement initState
     super.initState();
   }
 
+
   void generateSudoku(DifficultyLevel level) {
     isFinish = false;
-    focusClass = new FocusClass();
+    focusClass = new FocusClass(); //track focused box
     tapBoxIndex = null;
     int emptySquares;
     switch (level) {
@@ -79,8 +76,16 @@ class _sudokuState extends State<sudoku> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(onPressed: (){Navigator.pushNamed(context, mindGame.id);}, icon:  Icon(Icons.close_sharp)),
-              IconButton(onPressed: (){generateSudoku(difficultyLevel);}, icon:   Icon(Icons.refresh)),
+              IconButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, mindGame.id);
+                  },
+                  icon: Icon(Icons.close_sharp)),
+              IconButton(
+                  onPressed: () {
+                    generateSudoku(difficultyLevel);
+                  },
+                  icon: Icon(Icons.refresh)),
             ],
           ),
         ],
@@ -117,7 +122,7 @@ class _sudokuState extends State<sudoku> {
                       alignment: Alignment.center,
                       child: GridView.builder(
                         itemCount: boxInner.blokChars.length,
-                        shrinkWrap: true,
+                        //shrinkWrap: true,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3,
                           childAspectRatio: 1,
@@ -127,19 +132,16 @@ class _sudokuState extends State<sudoku> {
                         physics: ScrollPhysics(),
                         itemBuilder: (buildContext, indexChar) {
                           BlokChar blokChar = boxInner.blokChars[indexChar];
-                          Color? color = Colors.yellow.shade100;
+                          Color? color = Colors.yellow.shade100; //
                           Color colorText = Colors.black;
-
-                          // change color base condition
 
                           if (isFinish)
                             color = Colors.green;
                           else if (blokChar.isFocus && blokChar.text != "")
                             color = Colors.brown.shade100;
-                          else if (blokChar.isDefault)
-                            color = Colors.white;
+                          else if (blokChar.isDefault) color = Colors.white;
 
-                          if (tapBoxIndex == "${index}-${indexChar}" &&
+                          if (tapBoxIndex == "${index}-${indexChar}" && //row and coloumn
                               !isFinish) color = Colors.blue.shade100;
 
                           if (this.isFinish)
@@ -173,36 +175,43 @@ class _sudokuState extends State<sudoku> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      Container(
+                      Flexible(
+                        flex: 9,
                         child: GridView.builder(
                           itemCount: 9,
                           shrinkWrap: true,
                           scrollDirection: Axis.horizontal,
                           gridDelegate:
-                          SliverGridDelegateWithFixedCrossAxisCount(
+                              SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 3,
-                            childAspectRatio: 1,
+                            childAspectRatio: 1.2,
                             crossAxisSpacing: 5,
                             mainAxisSpacing: 5,
                           ),
                           physics: ScrollPhysics(),
                           itemBuilder: (buildContext, index) {
+                            int row = index ~/ 3;
+                            int col = index % 3;
+                            int number = row + col * 3 + 1; //row 0 col 0, row 0 col 1
                             return ElevatedButton(
-                              onPressed: () => setInput(index + 1),
+                              onPressed: (
+                              ) => setInput(number), //set number
                               child: Text(
-                                "${index + 1}",
-                                style: TextStyle(color: Colors.black,fontSize: 25),
+                                "$number",
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 25),
                               ),
                               style: ButtonStyle(
                                 backgroundColor:
-                                MaterialStateProperty.all<Color>(
-                                    Colors.white),
+                                    MaterialStateProperty.all<Color>(
+                                        Colors.white),
                               ),
                             );
                           },
                         ),
                       ),
-                      Expanded(
+                      Flexible(
+                        flex: 3,
                         child: Container(
                           margin: EdgeInsets.only(left: 10),
                           child: ElevatedButton(
@@ -234,38 +243,34 @@ class _sudokuState extends State<sudoku> {
   generatePuzzle(emptySquares) {
     // install plugins sudoku generator to generate one
     boxInners.clear();
-    var sudokuGenerator = SudokuGenerator(emptySquares:emptySquares); //54
-    // then we populate to get a possible cmbination
-    // Quiver for easy populate collection using partition
+    var sudokuGenerator = SudokuGenerator(emptySquares: emptySquares); //54
     List<List<List<int>>> completes = partition(sudokuGenerator.newSudokuSolved,
-        sqrt(sudokuGenerator.newSudoku.length).toInt())
-        .toList();
+            sqrt(sudokuGenerator.newSudoku.length).toInt())
+        .toList(); //partition the completed sudoku puzzle into smaller 3x3
     partition(sudokuGenerator.newSudoku,
-        sqrt(sudokuGenerator.newSudoku.length).toInt())
+            sqrt(sudokuGenerator.newSudoku.length).toInt())
         .toList()
         .asMap()
         .entries
         .forEach(
-          (entry) {
+      (entry) {
         List<int> tempListCompletes =
-        completes[entry.key].expand((element) => element).toList();
-        List<int> tempList = entry.value.expand((element) => element).toList();
+            completes[entry.key].expand((element) => element).toList();// list of number of completed sudoku
+        List<int> tempList = entry.value.expand((element) => element).toList();  //initial puzzle
 
         tempList.asMap().entries.forEach((entryIn) {
           int index =
               entry.key * sqrt(sudokuGenerator.newSudoku.length).toInt() +
-                  (entryIn.key % 9).toInt() ~/ 3;
+                  (entryIn.key % 9).toInt() ~/ 3;//entry.key is row, entryIn.key is column
 
           if (boxInners.where((element) => element.index == index).length ==
-              0) {
-            boxInners.add(BoxInner(index, []));
+              0) { //no existing boxInner objects in specific index, the length =0
+            boxInners.add(BoxInner(index, []));  //create one
           }
-
           BoxInner boxInner =
               boxInners.where((element) => element.index == index).first;
-
           boxInner.blokChars.add(BlokChar(
-            entryIn.value == 0 ? "" : entryIn.value.toString(),
+            entryIn.value == 0 ? "" : entryIn.value.toString(), //set the prefilled number and empty space
             index: boxInner.blokChars.length,
             isDefault: entryIn.value != 0,
             isCorrect: entryIn.value != 0,
@@ -274,8 +279,6 @@ class _sudokuState extends State<sudoku> {
         });
       },
     );
-
-    // complte generate puzzle sudoku
   }
 
   setFocus(int index, int indexChar) {
@@ -289,15 +292,12 @@ class _sudokuState extends State<sudoku> {
     // set focus color for line vertical & horizontal
     int rowNoBox = focusClass.indexBox! ~/ 3;
     int colNoBox = focusClass.indexBox! % 3;
-
     this.boxInners.forEach((element) => element.clearFocus());
-
-    boxInners.where((element) => element.index ~/ 3 == rowNoBox).forEach(
-            (e) => e.setFocus(focusClass.indexChar!, Direction.Horizontal));
-
+    boxInners.where((element) => element.index ~/ 3 == rowNoBox).forEach( //calculate 0-8/3  
+        (e) => e.setFocus(focusClass.indexChar!, Direction.Horizontal)); //row
     boxInners
         .where((element) => element.index % 3 == colNoBox)
-        .forEach((e) => e.setFocus(focusClass.indexChar!, Direction.Vertical));
+        .forEach((e) => e.setFocus(focusClass.indexChar!, Direction.Vertical)); //column
   }
 
   setInput(int? number) {
@@ -305,7 +305,7 @@ class _sudokuState extends State<sudoku> {
     // or clear out data
     if (focusClass.indexBox == null) return;
     if (boxInners[focusClass.indexBox!].blokChars[focusClass.indexChar!].text ==
-        number.toString() ||
+            number.toString() ||
         number == null) {
       boxInners.forEach((element) {
         element.clearFocus();
@@ -313,7 +313,7 @@ class _sudokuState extends State<sudoku> {
       });
       boxInners[focusClass.indexBox!]
           .blokChars[focusClass.indexChar!]
-          .setEmpty();
+          .setEmpty(); //number is null, user clear input
       tapBoxIndex = null;
       isFinish = false;
       showSameInputOnSameLine();
@@ -332,12 +332,10 @@ class _sudokuState extends State<sudoku> {
 
   void showSameInputOnSameLine() {
     // show duplicate number on same line vertical & horizontal so player know he or she put a wrong value on somewhere
-
     int rowNoBox = focusClass.indexBox! ~/ 3;
     int colNoBox = focusClass.indexBox! % 3;
-
     String textInput =
-    boxInners[focusClass.indexBox!].blokChars[focusClass.indexChar!].text!;
+        boxInners[focusClass.indexBox!].blokChars[focusClass.indexChar!].text!;
 
     boxInners.forEach((element) => element.clearExist());
 
@@ -348,13 +346,11 @@ class _sudokuState extends State<sudoku> {
     boxInners.where((element) => element.index % 3 == colNoBox).forEach((e) =>
         e.setExistValue(focusClass.indexChar!, focusClass.indexBox!, textInput,
             Direction.Vertical));
-
     List<BlokChar> exists = boxInners
         .map((element) => element.blokChars)
         .expand((element) => element)
         .where((element) => element.isExist)
         .toList();
-
     if (exists.length == 1) exists[0].isExist = false;
   }
 

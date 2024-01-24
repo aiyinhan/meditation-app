@@ -10,20 +10,52 @@ class UploadSongPage extends StatefulWidget {
 
 class _UploadSongPageState extends State<UploadSongPage> {
   final MusicController _uploadSongController = MusicController();
-  bool showSpinner =false;
+  bool showSpinner = false;
+
+  void _showErrorMessage(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Error',
+            style: TextStyle(
+              fontFamily: 'Alegreya',
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          content: Text(
+            message,
+            style: TextStyle(
+              fontFamily: 'Alegreya',
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Center(
-          child: Text(
-            'Upload Song',
-            style: TextStyle(
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Alegreya', //
-            ),
+        title: Text(
+          'Upload Song',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Alegreya', //
           ),
         ),
         backgroundColor: Color(0xFF8E97FD),
@@ -103,23 +135,33 @@ class _UploadSongPageState extends State<UploadSongPage> {
                         backgroundColor: Colors.blue[200],
                       ),
                       onPressed: () async {
+                        if (_uploadSongController.songFile == null ||
+                            _uploadSongController.title.isEmpty ||
+                            _uploadSongController.artist.isEmpty) {
+                          //error message when empty field
+                          _showErrorMessage(
+                              'Please select a song file and enter all fields.');
+                          return;
+                        }
+                        try {
                           setState(() {
                             showSpinner = true;
                           });
-                          try{
                           await _uploadSongController.uploadSong();
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
                               return AlertDialog(
-                                title: Text('Success',
+                                title: Text(
+                                  'Success',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                     fontFamily: 'Alegreya',
                                   ),
                                 ),
-                                content: Text('Song uploaded successfully.',
+                                content: Text(
+                                  'Song uploaded successfully.',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -128,7 +170,8 @@ class _UploadSongPageState extends State<UploadSongPage> {
                                 ),
                                 actions: <Widget>[
                                   TextButton(
-                                    child: Text('OK',
+                                    child: Text(
+                                      'OK',
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -136,7 +179,8 @@ class _UploadSongPageState extends State<UploadSongPage> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      Navigator.pushNamed(context, musicPage.id);
+                                      Navigator.pushNamed(
+                                          context, musicPage.id);
                                     },
                                   ),
                                 ],
@@ -149,18 +193,22 @@ class _UploadSongPageState extends State<UploadSongPage> {
                             context: context,
                             builder: (BuildContext context) {
                               return AlertDialog(
-                                title: Text('Error',
+                                title: Text(
+                                  'Error',
                                   style: TextStyle(
                                     fontSize: 23,
                                     fontWeight: FontWeight.bold,
                                     fontFamily: 'Alegreya',
-                                  ),),
-                                content: Text('An error occurred while uploading the song. Please try again.: $error',
+                                  ),
+                                ),
+                                content: Text(
+                                  'An error occurred while uploading the song. Please try again.: $error',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                     fontFamily: 'Alegreya',
-                                  ),),
+                                  ),
+                                ),
                                 actions: <Widget>[
                                   TextButton(
                                     child: Text('OK'),

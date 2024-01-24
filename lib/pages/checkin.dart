@@ -21,7 +21,6 @@ class _CheckinPageState extends State<CheckinPage> {
   Set<String> selectedReasons = {};
   String reason = " ";
 
-
   void _toggleMood(String reason) {
     setState(() {
       if (selectedReasons.contains(reason)) {
@@ -45,10 +44,8 @@ class _CheckinPageState extends State<CheckinPage> {
     final currentWeek = _calculateWeekNumber(now);
     final currentDay = now.day;
     print('currentDay:$currentDay');
-
     final user = FirebaseAuth.instance.currentUser;
     String? uid = user?.uid;
-
     final moodRecordRef = FirebaseFirestore.instance
         .collection('Users')
         .doc(uid)
@@ -58,22 +55,51 @@ class _CheckinPageState extends State<CheckinPage> {
         .doc(currentMonth.toString())
         .collection('Days')
         .doc(currentDay.toString());
-
     final existingRecordSnapshot = await moodRecordRef.get();
-
     if (existingRecordSnapshot.exists) {
-      print('Mood record already exists for today');
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Text(
+              'Hi, mood record already exists for today.Please do it tomorrow :P',
+              style: TextStyle(
+                fontSize: 23,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+                fontFamily: 'Alegreya',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text(
+                  'OK',
+                  style: TextStyle(
+                    color: Color(0xFF8E97FD),
+                    fontFamily: 'Alegreya',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+      return; 
     } else {
       await moodRecordRef.set({
         "mood": selected,
         "reasons": selectedReasons.toList(),
         "date": now,
-        // Add any other fields you want to save
       });
-
       print('New mood record created successfully');
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,7 +166,6 @@ class _CheckinPageState extends State<CheckinPage> {
                   SizedBox(
                     height: 15,
                   ),
-
                   //3 difference faces
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -371,8 +396,11 @@ class _CheckinPageState extends State<CheckinPage> {
                             children: [
                               MoodReason(
                                 icon: Icons.shield_moon,
-                                color: selectedReasons.contains('sleep') ? Colors.grey : Colors.transparent,
-                                onTap: () => _toggleMood('sleep'),),
+                                color: selectedReasons.contains('sleep')
+                                    ? Colors.grey
+                                    : Colors.transparent,
+                                onTap: () => _toggleMood('sleep'),
+                              ),
                               Text(
                                 'Sleep',
                                 style: TextStyle(
@@ -398,8 +426,54 @@ class _CheckinPageState extends State<CheckinPage> {
                   child: MaterialButton(
                     padding: EdgeInsets.all(15),
                     onPressed: () {
-                      submitMoodRecord();
-                      Navigator.pushNamed(context, MoodRecord.id);
+                      if (selected.isEmpty || selectedReasons.isEmpty) {
+                        // Show error message
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text(
+                                'Opps!',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Alegreya',
+                                ),
+                              ),
+                              content: Text(
+                                'Please select your mood and reason.',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Alegreya',
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text(
+                                    'OK',
+                                    style: TextStyle(
+                                      color: Color(0xFF8E97FD),
+                                      fontFamily: 'Alegreya',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                        return;
+                      } else {
+                        submitMoodRecord();
+                        Navigator.pushNamed(context, MoodRecord.id);
+                      }
                     },
                     color: Color(0xFF8E97FD),
                     shape: RoundedRectangleBorder(
@@ -420,10 +494,8 @@ class _CheckinPageState extends State<CheckinPage> {
               SizedBox(
                 height: 10,
               ),
-
               GestureDetector(
                 onTap: () {
-                  //Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterPage()));
                   Navigator.pushNamed(context, MoodRecord.id);
                 },
                 child: Text(

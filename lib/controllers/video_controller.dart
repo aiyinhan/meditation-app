@@ -17,26 +17,21 @@ class VideoController{
 
   Future<void> uploadVideo() async {
     if (videoFile == null || title.isEmpty) {
-      // Ensure all fields are filled
-      return;
+      return ;
     }
     try {
-      // Upload song file to Firebase Storage
       Reference storageRef =
       _storage.ref().child('video/${videoFile!.path}');
       await storageRef.putFile(videoFile!);
       String? videoUrl = await storageRef.getDownloadURL();
-      // Upload song metadata to Firestore
       await _firestore.collection('videoMetadata').add({
         'title': title,
         'url': videoUrl,
       });
-      // Clear form fields and show success message
       videoUrl = null;
       title = '';
     } catch (error) {
-      // Show error message
-      throw error;
+      print('Error: $error');
     }
   }
 
@@ -47,9 +42,8 @@ class VideoController{
       allowMultiple: false,
     );
     if (result != null && result.files.isNotEmpty) {
-      File file = File(result.files.first.path!); //retrieves the path of the first selected file
+      File file = File(result.files.first.path!);
       videoFile = file;
-      //String videoName = DateTime.now().millisecondsSinceEpoch.toString() + '.mp4';
     }
   }
 
@@ -62,7 +56,6 @@ class VideoController{
           .get();
       if (snapshot.exists) {
         userRole = snapshot.get('Role') ?? '';
-        print(userRole); // Assign the user's role to the userRole variable
       }
     }
   }

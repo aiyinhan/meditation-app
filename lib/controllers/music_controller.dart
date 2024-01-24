@@ -42,31 +42,24 @@ class MusicController extends ChangeNotifier {
 
   Future<void> uploadSong() async {
     if (MsongFile == null || Mtitle.isEmpty || Martist.isEmpty) {
-      // Ensure all fields are filled
       return;
     }
     try {
-      // Upload song file to Firebase Storage
       Reference storageRef =
-      FirebaseStorage.instance.ref().child('song/${MsongFile!.path}');
+      FirebaseStorage.instance.ref().child('song/${MsongFile!.path}'); //! ensure a non null path when file is selected
       await storageRef.putFile(MsongFile!);
       String songUrl = await storageRef.getDownloadURL();
-
-      // Upload song metadata to Firestore
       await FirebaseFirestore.instance.collection('musicMetadata').add({
         'title': Mtitle,
         'artist': Martist,
         'url': songUrl,
         'isFavourite': false,
       });
-
-      // Clear form fields and show success message
       MsongFile = null;
       Mtitle = '';
       Martist = '';
     } catch (error) {
-      // Show error message
-      throw error;
+      print('Error: $error');
     }
   }
 
@@ -80,7 +73,6 @@ class MusicController extends ChangeNotifier {
           .get();
       if (snapshot.exists) {
         userRole = snapshot.get('Role') ?? '';
-        print(userRole); // Assign the user's role to the userRole variable
       }
     }
   }
@@ -97,7 +89,7 @@ class MusicController extends ChangeNotifier {
     await _firestore.collection('musicMetadata').doc(docid).delete();
   }
 
-  //saveMusic
+//saveMusic
 void deleteFavoriteSong (String docid)async{
   await _firestore
       .collection('RegisterData')
@@ -114,5 +106,8 @@ void deleteFavoriteSong (String docid)async{
         .collection('favorite')
         .snapshots();
   }
+
+  
+
 
 }

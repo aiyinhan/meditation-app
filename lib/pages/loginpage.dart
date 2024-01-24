@@ -8,8 +8,6 @@ import 'package:meditation/pages/homePage.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import '../controllers/auth_controller.dart';
 
-
-
 class loginpage extends StatefulWidget {
   const loginpage({Key? key}) : super(key: key);
   static String id = 'loginpage';
@@ -24,7 +22,7 @@ class _loginpageState extends State<loginpage> {
   final passwordController = TextEditingController();
   final AuthController _authController = AuthController();
 
-  bool showSpinner =false;
+  bool showSpinner = false;
   bool obscureText = true;
 
   @override
@@ -34,7 +32,6 @@ class _loginpageState extends State<loginpage> {
     //getCurrentUser();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,10 +40,9 @@ class _loginpageState extends State<loginpage> {
         inAsyncCall: showSpinner,
         child: Center(
           child: SafeArea(
-            child:SingleChildScrollView(
+            child: SingleChildScrollView(
               child: Column(
-                children:  [
-
+                children: [
                   Icon(
                     Icons.lock,
                     size: 30,
@@ -69,7 +65,6 @@ class _loginpageState extends State<loginpage> {
                     controller: emailController,
                     hintText: 'Email',
                     obscureText: false,
-
                   ),
                   SizedBox(height: 10),
 
@@ -85,13 +80,13 @@ class _loginpageState extends State<loginpage> {
                       obscureText: obscureText,
                       decoration: InputDecoration(
                         suffixIcon: IconButton(
-                            onPressed: () {
-                              setState(() {
-                                obscureText = !obscureText;
-                              });
-                            },
-                            icon: Icon(Icons.remove_red_eye),
-                          ),
+                          onPressed: () {
+                            setState(() {
+                              obscureText = !obscureText;
+                            });
+                          },
+                          icon: Icon(Icons.remove_red_eye),
+                        ),
                         hintText: 'Password',
                         hintStyle: TextStyle(
                           fontSize: 23,
@@ -112,12 +107,12 @@ class _loginpageState extends State<loginpage> {
                   ),
 
                   //forgot password?
-                  TextButton(onPressed: (){
-                    Navigator.pushNamed(context, forgotPass.id);
-                  },
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, forgotPass.id);
+                    },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
-
                       children: [
                         Container(
                           padding: EdgeInsets.only(right: 15),
@@ -126,54 +121,55 @@ class _loginpageState extends State<loginpage> {
                             'Forgot Password?',
                             style: TextStyle(
                                 color: Colors.black,
-                                fontFamily:'Alegreya',
-                                fontSize: 18) ,
+                                fontFamily: 'Alegreya',
+                                fontSize: 18),
                           ),
                         ),
                       ],
                     ),
                   ),
 
-
                   //login button
                   MyButton(
-                    onTap: ()async{
+                    onTap: () async {
                       setState(() {
-                        showSpinner=true;
+                        showSpinner = true;
                       });
                       try {
-                        _authController.loginUser(email:  emailController.text, password: passwordController.text);
-                        Navigator.pushNamed(context,homePage.id);
+                        await _authController.loginUser(
+                          email: emailController.text,
+                          password: passwordController.text,
+                        );
+                        Navigator.pushNamed(context, homePage.id);
                         setState(() {
-                          showSpinner=false;
+                          showSpinner = false;
                         });
-                      }on FirebaseAuthException catch(e){
-                        showDialog(context: context, builder: (BuildContext context){
-                          return AlertDialog(
-                            content: Padding(
-                              padding: const EdgeInsets.only(bottom: 20),
-                              child: Text(e.message.toString()),
-                            ),
-                            contentTextStyle: TextStyle(
-                              fontSize: 20,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Alegreya',
-                            ),
-
-                            title: Center(
-                                child: Text('Error Message!')
-                              ),
-                            titleTextStyle: TextStyle(
-                              fontSize: 25,
-                              color: Colors.redAccent,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Alegreya',
-                          ),
-                          );
-                        });
+                      } on FirebaseAuthException catch (e) {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                content: Padding(
+                                  padding: const EdgeInsets.only(bottom: 20),
+                                  child: Text(e.message.toString()),
+                                ),
+                                contentTextStyle: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Alegreya',
+                                ),
+                                title: Center(child: Text('Error Message!')),
+                                titleTextStyle: TextStyle(
+                                  fontSize: 25,
+                                  color: Colors.redAccent,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Alegreya',
+                                ),
+                              );
+                            });
                         setState(() {
-                          showSpinner=false;
+                          showSpinner = false;
                         });
                       }
                     },
@@ -207,9 +203,7 @@ class _loginpageState extends State<loginpage> {
                         ),
                       ),
                     ],
-
                   ),
-
                 ],
               ),
             ),
@@ -219,4 +213,3 @@ class _loginpageState extends State<loginpage> {
     );
   }
 }
-

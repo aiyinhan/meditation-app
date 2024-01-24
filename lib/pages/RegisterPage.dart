@@ -5,7 +5,6 @@ import 'package:meditation/pages/loginpage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
-
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
   static String id = 'registerpage';
@@ -15,7 +14,6 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-
   bool showSpinner = false;
   bool obscureText = true;
   final AuthController _authController = AuthController();
@@ -163,7 +161,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     setState(() {
                       showSpinner = true;
                     });
-                    if (passwordController.text != confirmPasswordController.text) {
+                    if (passwordController.text !=
+                        confirmPasswordController.text) {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
@@ -189,11 +188,14 @@ class _RegisterPageState extends State<RegisterPage> {
                       );
                     } else {
                       try {
-                        await _authController.registerUser(email: emailController.text,
-                            password: passwordController.text, username: usernameController.text, age: ageController.text, bodyWeight: bodyWeightController.text);
+                        await _authController.registerUser(
+                            email: emailController.text,
+                            password: passwordController.text,
+                            username: usernameController.text,
+                            age: ageController.text,
+                            bodyWeight: bodyWeightController.text);
                         Navigator.pushNamed(context, loginpage.id);
                       } on FirebaseAuthException catch (e) {
-                        print(e);
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {

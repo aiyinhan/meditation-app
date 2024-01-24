@@ -69,8 +69,7 @@ List<bool> getInitialItemState(Level level) {
 
 List<GlobalKey<FlipCardState>> getCardStateKeys(Level level) {
   List<GlobalKey<FlipCardState>> cardStateKeys =
-  // ignore: deprecated_member_use
-  <GlobalKey<FlipCardState>>[];
+  <GlobalKey<FlipCardState>>[]; //store key for managing state of each flipcard
 
   if (level == Level.Easy) {
     for (int i = 0; i < 6; i++) {

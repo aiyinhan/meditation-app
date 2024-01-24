@@ -53,7 +53,7 @@ class _FlipCardGaneState extends State<FlipCardGane> {
     );
     _cardFlips = getInitialItemState(_level);
     _cardStateKeys = getCardStateKeys(_level);
-    _left = (_data.length ~/ 3);
+    _left = (_data.length ~/ 3); //number of pair 6/3=2
     _isFinished = false;
     if (mounted)
       setState(() {
@@ -183,27 +183,28 @@ class _FlipCardGaneState extends State<FlipCardGane> {
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount( //control number of column
-                        crossAxisCount: 3,
+                        crossAxisCount: 2,
+                        childAspectRatio: 2,
                       ),
                       itemBuilder: (context, index) =>
                       _start ? FlipCard( // if _start = true, create flip card
                               key: _cardStateKeys[index],
                               onFlip: () {
-                                if (!_flip) {
+                                if (!_flip) {  //flip=false
                                   _flip = true;
                                   _previousIndex = index;
                                   print("first index: $_previousIndex");
-                                } else {
+                                } else { //flip =true
                                   _flip = false;
                                   if (_previousIndex != index) {
                                     if (_data[_previousIndex] != _data[index]) {
-                                      _wait = true; //Set _wait to true to prevent further card flipping.
+                                      _wait = true; //Set _wait to true to prevent further card flipping
                                       Future.delayed(
                                           const Duration(milliseconds: 1500),
                                           () {
                                         _cardStateKeys[_previousIndex]
                                             .currentState
-                                            ?.toggleCard();
+                                            ?.toggleCard(); 
                                         _previousIndex = index;
                                         print("second index: $_previousIndex");
                                         _cardStateKeys[_previousIndex]
@@ -223,11 +224,11 @@ class _FlipCardGaneState extends State<FlipCardGane> {
                                       _cardFlips[index] = false;
 
                                       print(_cardFlips);
-
                                       if (mounted)
                                         setState(() {
-                                          _left -= 1;
+                                          _left -= 1; //2-1=1 
                                         });
+
                                       if (_cardFlips.every((t) => t == false)) {
                                         print("Won");
                                         Future.delayed(
@@ -245,7 +246,7 @@ class _FlipCardGaneState extends State<FlipCardGane> {
                                 }
                                 if (mounted) setState(() {});
                               },
-                              flipOnTouch: _wait ? false : _cardFlips[index],
+                              flipOnTouch: _wait ? false : _cardFlips[index], //_wait is true fliponTouch set to false, else set the flipontouch to the index
                               direction: FlipDirection.HORIZONTAL,
                               front: Container(
                                 decoration: BoxDecoration(

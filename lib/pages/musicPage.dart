@@ -22,8 +22,6 @@ class _musicPageState extends State<musicPage> {
   final MusicController _musicController = MusicController();
   bool userRoleFetched = false;
 
-
-
   @override
   void initState() {
     super.initState();
@@ -42,6 +40,40 @@ class _musicPageState extends State<musicPage> {
     super.dispose();
     titleController.dispose();
     artistController.dispose();
+  }
+
+  void _showErrorMessage(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Error',
+            style: TextStyle(
+              fontFamily: 'Alegreya',
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          content: Text(
+            message,
+            style: TextStyle(
+              fontFamily: 'Alegreya',
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -107,13 +139,12 @@ class _musicPageState extends State<musicPage> {
                       'images/relaxmusic.png',
                       width: 200,
                       height: 200,
-
                     ),
                   ),
                 ),
                 actions: <Widget>[
                   Visibility(
-                    visible: _musicController.userRole=='admin',
+                    visible: _musicController.userRole == 'admin',
                     child: GestureDetector(
                       onTap: () {
                         Navigator.pushNamed(context, UploadSongPage.id);
@@ -135,10 +166,10 @@ class _musicPageState extends State<musicPage> {
               ),
             ];
           },
-          body: StreamBuilder<QuerySnapshot>(
+          body: StreamBuilder<QuerySnapshot>( //querysnapshot represenrs the result of query
             stream: _musicController.music,
-            builder: (BuildContext context,
-                AsyncSnapshot<QuerySnapshot> snapshot) {
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               // Update data
               if (snapshot.hasData) {
                 return ListView.builder(
@@ -146,27 +177,25 @@ class _musicPageState extends State<musicPage> {
                   shrinkWrap: true,
                   itemCount: snapshot.data!.docs.length,
                   itemBuilder: (context, index) {
-                    var document =
-                    snapshot.data!.docs[index]; // 0 to snapshot.data!.docs.length - 1
+                    var document = snapshot.data!
+                        .docs[index]; // 0 to snapshot.data!.docs.length - 1
                     String title = document['title'];
                     String artist = document['artist'];
                     String docid = document.id;
                     TextEditingController titleController =
-                    TextEditingController(text: title);
+                        TextEditingController(text: title);
                     TextEditingController artistController =
-                    TextEditingController(text: artist);
+                        TextEditingController(text: artist);
                     return ListTile(
                       leading: CircleAvatar(
+                        backgroundColor: Color(0xFFFFFC97E),
                         child: Text(
                           '${index + 1}',
-                          // Add 1 to index to start the list from 1 instead of 0
                           style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        backgroundColor: Color(0xFFFFFC97E),
-                        // Customize the color of the CircleAvatar
                       ),
                       title: Text(
                         title,
@@ -213,12 +242,17 @@ class _musicPageState extends State<musicPage> {
                             child: musicIcon(
                               onPressed: () {
                                 // Update the song metadata in Firestore
-                                _musicController.updateSongMetadata(
-                                  docid,
-                                  titleController.text,
-                                  artistController.text,
-                                );
-                                Navigator.of(context).pop();
+                                if (titleController.text.isEmpty ||artistController.text.isEmpty) {
+                                  _showErrorMessage(
+                                      'Please fill in all fields');
+                                } else {
+                                  _musicController.updateSongMetadata(
+                                    docid,
+                                    titleController.text,
+                                    artistController.text,
+                                  );
+                                  Navigator.of(context).pop();
+                                }
                               },
                               operationName: 'Edit MetaData',
                               titleController: titleController,
@@ -237,7 +271,7 @@ class _musicPageState extends State<musicPage> {
                                 Navigator.of(context).pop();
                               },
                               operationName:
-                              'Are you sure you want to delete this song?',
+                                  'Are you sure you want to delete this song?',
                               titleController: titleController,
                               artistController: artistController,
                               buttonText: 'Delete',

@@ -10,8 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../components/custom_downloadbutton.dart';
 import '../music_service.dart';
 
-
-
 class PlayMusicPage extends StatefulWidget {
   final String songUrl;
   String artist;
@@ -22,7 +20,6 @@ class PlayMusicPage extends StatefulWidget {
     required this.title,
     required this.artist,
   });
-
 
   @override
   _PlayMusicPageState createState() => _PlayMusicPageState();
@@ -36,33 +33,27 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
   double currentSliderValue = 0.0;
   Duration audioDuration = Duration.zero;
   bool isFavorite = false;
-  Song?song;
+  Song? song;
   Duration startPosition = Duration.zero;
   int _currentDurationInSeconds = 0;
   bool _isSongCompleted = false;
   bool _isTimerStarted = false;
   bool isUserInteracting = false;
-  late DownloadController downloadController;
+  late DownloadController musicdownloadController;
 
-
-
-  Future<void> playMusic() async {
-    await justAudioPlayer.play();
+  Future<void> playPauseMusic() async {
+    if (isPlaying) {
+      await justAudioPlayer.pause();
+    } else {
+      await justAudioPlayer.play();
+    }
     setState(() {
-      isPlaying = true;
+      isPlaying = !isPlaying;
     });
   }
 
   Future<void> stopMusic() async {
     await justAudioPlayer.stop();
-    setState(() {
-      isPlaying = false;
-
-    });
-  }
-
-  Future<void> pauseMusic() async {
-    await justAudioPlayer.pause();
     setState(() {
       isPlaying = false;
     });
@@ -73,21 +64,19 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
       currentIndex--;
     } else {
       currentIndex =
-          songs.length - 1; // Loop to the last song if it's the first song
+          songs.length - 1; // Loop to the last song if its the first song
     }
     justAudioPlayer.setUrl(songs[currentIndex].url).then((_) {
       final duration = justAudioPlayer.duration;
       if (isPlaying && duration != null) {
-        // If the music is playing and duration is not null,
-        // cancel the current timer
         _cancelMusicTimer();
-        // Start the timer for the new song
         _startMusicTimer(duration);
-        playMusic();
+        justAudioPlayer.load();
+        justAudioPlayer.play();
       }
       setState(() {
-        widget.title = songs[currentIndex].title; // Update the title
-        widget.artist = songs[currentIndex].artist; // Update the artist
+        widget.title = songs[currentIndex].title; // Update title
+        widget.artist = songs[currentIndex].artist; // Update artist
       });
       _resetSongCompletedFlag();
     }).catchError((error) {
@@ -99,21 +88,18 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
     if (currentIndex < songs.length - 1) {
       currentIndex++;
     } else {
-      currentIndex = 0; // Loop back to the first song if it's the last song
+      currentIndex = 0;
     }
     justAudioPlayer.setUrl(songs[currentIndex].url).then((_) {
       final duration = justAudioPlayer.duration;
       if (isPlaying && duration != null) {
-        // If the music is playing and duration is not null,
-        // cancel the current timer
         _cancelMusicTimer();
-        // Start the timer for the new song
         _startMusicTimer(duration);
-        playMusic();
+        playPauseMusic();
       }
       setState(() {
-        widget.title = songs[currentIndex].title; // Update the title
-        widget.artist = songs[currentIndex].artist; // Update the artist
+        widget.title = songs[currentIndex].title;
+        widget.artist = songs[currentIndex].artist;
       });
       _resetSongCompletedFlag();
     }).catchError((error) {
@@ -121,23 +107,21 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
     });
   }
 
-
   void _saveMusicDuration(int durationListenedInSeconds) async {
-    print('_savemusicduration called');
-    // Get the current user ID
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        // Fetch the current total music duration from Firestore
-        int totalMusicDuration = await MusicService.fetchTotalMusicDuration(user.uid);
-        // Add the duration listened in minutes to the current total music duration
-        totalMusicDuration += (durationListenedInSeconds ~/ 60); // Convert seconds to minutes
-        // Update the total music duration in Firestore
+        int totalMusicDuration =
+            await MusicService.fetchTotalMusicDuration(user.uid);
+        totalMusicDuration +=
+            (durationListenedInSeconds ~/ 60); // Convert seconds to mins
         await FirebaseFirestore.instance
             .collection('RegisterData')
             .doc(user.uid)
-            .set({'music_duration': totalMusicDuration}, SetOptions(merge: true));
-        print('Duration saved to Firestore: ${durationListenedInSeconds ~/ 60} minutes');
+            .set({'music_duration': totalMusicDuration},
+                SetOptions(merge: true));
+        print(
+            'Duration saved to Firestore: ${durationListenedInSeconds ~/ 60} minutes');
         print('Total duration in Firestore: $totalMusicDuration minutes');
       } catch (e) {
         print('Error saving music duration: $e');
@@ -148,7 +132,8 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
   void _startMusicTimer(Duration? totalDuration) {
     print('_startMusicTimer called');
     if (!_isTimerStarted && totalDuration != null) {
-      _isTimerStarted = true; // Set the flag to true so that the timer is not started again
+      _isTimerStarted =
+          true; // Set the flag to true so that the timer is not start again,avoid multiple start
       Timer.periodic(Duration(seconds: 1), (Timer timer) async {
         final currentPosition = justAudioPlayer.position;
         final durationListened = (currentPosition - startPosition).inSeconds;
@@ -156,7 +141,6 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
           _currentDurationInSeconds = durationListened;
         });
         if (_isSongCompleted) {
-          // Song has ended, so stop the timer and save the duration
           timer.cancel();
           _saveMusicDuration(durationListened);
         }
@@ -176,19 +160,15 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
 
   void initAudioPlayer() async {
     try {
-      // Load and get the duration of the audio
       await justAudioPlayer.setUrl(widget.songUrl);
       await justAudioPlayer.load();
       final duration = justAudioPlayer.duration;
       setState(() {
         audioDuration = duration ?? Duration.zero;
       });
-      // Set the URL for the just_audio.AudioPlayer
       justAudioPlayer.playerStateStream.listen((state) {
         if (state.processingState == ProcessingState.completed) {
-          // Playback is completed, so set the flag to true
           _isSongCompleted = true;
-
           // Save the music duration when the song is completed
           final currentPosition = justAudioPlayer.position;
           final durationListened = (currentPosition - startPosition).inSeconds;
@@ -209,8 +189,6 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
           }
         }
       });
-      // Check if there is a saved position and resume the song from that position
-      // Listen for audio position changes and update the slider
       justAudioPlayer.positionStream.listen((position) {
         if (position.inMilliseconds <= audioDuration.inMilliseconds) {
           setState(() {
@@ -221,12 +199,10 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
             currentSliderValue = audioDuration.inMilliseconds.toDouble();
           });
         }
-        //saveCurrentPosition(position);
       });
       print("audio duration $audioDuration");
       loadFavoriteStatus();
       loadSongsFromFirestore(); // Load the list of songs from Firestore
-      // Start the music timer
       _startMusicTimer(audioDuration);
     } catch (e) {
       print('Error initializing audio player: $e');
@@ -236,7 +212,8 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
   @override
   void initState() {
     super.initState();
-    downloadController = DownloadController(widget.songUrl, widget.title);
+    musicdownloadController =
+        DownloadController(widget.songUrl, widget.title); //download function
     justAudioPlayer = AudioPlayer();
     justAudioPlayer.setUrl(widget.songUrl).catchError((error) {
       print('Error setting song URL: $error');
@@ -253,7 +230,6 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
     });
     checkFavoriteStatus();
     initAudioPlayer();
-
   }
 
   @override
@@ -284,30 +260,30 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
               children: [
                 Padding(
                   padding:
-                  const EdgeInsets.only(top: 20, bottom: 100, left: 15),
+                      const EdgeInsets.only(top: 20, bottom: 100, left: 15),
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         IconButton(
                             onPressed: () {
                               Navigator.pushNamed(context, musicPage.id);
-                              pauseMusic();
+                              stopMusic();
+                              _cancelMusicTimer();
                             },
                             icon: Icon(Icons.arrow_back)),
                         Spacer(),
+                        //download
                         Container(
-                          margin: const EdgeInsets.all(10.0),
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.white38,
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: CustomDownloadButton(
-                            downloadController: downloadController,
-                          )
-                        ),
-
+                            margin: const EdgeInsets.all(10.0),
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.white38,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: MusicDownloadButton(
+                              musicdownloadController: musicdownloadController,
+                            )),
                         //favourite
                         Container(
                           margin: const EdgeInsets.all(10.0),
@@ -321,9 +297,13 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
                             highlightColor: Colors.grey,
                             onPressed: () => toggleFavoriteStatus(),
                             icon: Icon(
-                              isFavorite ? Icons.favorite : Icons.favorite_border,
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
                               size: 20,
-                              color: isFavorite ? Colors.pink : null, // Set the color to pink if it's a favorite
+                              color: isFavorite
+                                  ? Colors.pink
+                                  : null, 
                             ),
                             color: Color(0xFF03174C),
                           ),
@@ -363,29 +343,20 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
                                 size: 60,
                               ),
                               onPressed: () {
-                                // Call a function to skip to the previous song
                                 skipToPreviousSong();
                               },
                             ),
-
                             //pause
                             Padding(
                               padding:
-                              const EdgeInsets.only(right: 20, bottom: 10),
+                                  const EdgeInsets.only(right: 0, bottom: 0),
                               child: IconButton(
-                                onPressed: () {
-                                  if (isPlaying) {
-                                    pauseMusic();
-                                  } else {
-                                    playMusic();
-                                  }
-                                },
+                                onPressed: playPauseMusic,
                                 icon: Icon(
                                   isPlaying
                                       ? Icons.pause_circle
                                       : Icons.play_circle,
-                                  //if true then pause, false then arrow
-                                  size: 80,
+                                  size: 60,
                                 ),
                               ),
                             ),
@@ -394,7 +365,6 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
                             IconButton(
                               icon: Icon(Icons.skip_next, size: 60),
                               onPressed: () {
-                                // Call a function to skip to the next song
                                 skipToNextSong();
                               },
                             ),
@@ -408,12 +378,12 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
                             if (snapshot.hasData) {
                               Duration position = snapshot.data!;
                               if (!isUserInteracting) {
-                                currentSliderValue = position.inMilliseconds.toDouble();
+                                currentSliderValue =
+                                    position.inMilliseconds.toDouble();
                               }
                               return SliderTheme(
                                 data: SliderThemeData(
                                   thumbColor: Colors.white,
-                                  // Transparent white
                                   overlayColor: Colors.white.withOpacity(0.4),
                                   trackHeight: 4.0,
                                   thumbShape: RoundSliderThumbShape(
@@ -426,7 +396,7 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
                                     Slider(
                                       activeColor: Colors.white,
                                       inactiveColor:
-                                      Colors.white.withOpacity(0.3),
+                                          Colors.white.withOpacity(0.3),
                                       value: currentSliderValue.clamp(
                                           0.0,
                                           audioDuration.inMilliseconds
@@ -444,7 +414,8 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
                                         setState(() {
                                           isUserInteracting = false;
                                         });
-                                        justAudioPlayer.seek(Duration(milliseconds: value.round()));
+                                        justAudioPlayer.seek(Duration(
+                                            milliseconds: value.round()));
                                       },
                                     ),
                                     if (audioDuration.inMilliseconds > 0)
@@ -471,7 +442,6 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
           ),
         ]),
       ),
-
     );
   }
 
@@ -483,7 +453,6 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
   }
 
   void checkFavoriteStatus() async {
-    // Get the current user ID
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final favoriteSongsSnapshot = await FirebaseFirestore.instance
@@ -506,7 +475,6 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
   }
 
   void toggleFavoriteStatus() async {
-    // Get the current user ID
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final favoriteSongsCollection = FirebaseFirestore.instance
@@ -515,7 +483,7 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
           .collection('favorite');
 
       if (isFavorite) {
-        // Remove the song from favorites in Firestore
+        //remove
         await favoriteSongsCollection
             .where('url', isEqualTo: widget.songUrl)
             .get()
@@ -525,18 +493,16 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
           }
         });
       } else {
-        // Add the song to favorites in Firestore
+        //add
         await favoriteSongsCollection.add({
           'title': widget.title,
           'artist': widget.artist,
           'url': widget.songUrl,
         });
       }
-      // Update the favorite status locally
       setState(() {
         isFavorite = !isFavorite;
       });
-      // Update the favorite status in SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       prefs.setBool(widget.songUrl, isFavorite);
     }
@@ -544,11 +510,10 @@ class _PlayMusicPageState extends State<PlayMusicPage> {
 
   void loadSongsFromFirestore() async {
     final snapshot =
-    await FirebaseFirestore.instance.collection('musicMetadata').get();
+        await FirebaseFirestore.instance.collection('musicMetadata').get();
     setState(() {
       songs = snapshot.docs.map((doc) {
         final data = doc.data();
-        // Initialize isFavorite to false if it's not available in the Firestore data
         if (data['isFavorite'] == null) {
           data['isFavorite'] = false;
         }

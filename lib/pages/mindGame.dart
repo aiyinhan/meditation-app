@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:meditation/components/game_list.dart';
+import 'package:meditation/game/game_list.dart';
 import 'package:meditation/game/memorygame/home.dart';
-import 'package:meditation/game/puzzlegame/screen/puzzleboard.dart';
+import 'package:meditation/game/puzzlegame/screen/puzzleHome.dart';
 import 'package:meditation/game/sudoku/sudokuLevelHome.dart';
 import 'package:meditation/pages/ProfilePage.dart';
 import 'package:meditation/pages/homePage.dart';
@@ -92,78 +92,15 @@ class _mindGameState extends State<mindGame> {
 
                       //Memory Matching game
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: Row(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Column(
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.asset('images/alphabet.jpg',
-                                height: 80,
-                                width:90,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            SizedBox(width: 20,),
-                            Text(
-                              "Memory Matching Game",
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Alegreya',
-                              ),
-                            ),
-                            Spacer(),
+                            //simple maths
                             GestureDetector(
-                              onTap: (){
-                                showDialog(context: context, builder: (BuildContext context){
-                                  return AlertDialog(
-                                    backgroundColor: Colors.white,
-                                    content: Text('Welcome to Memory Matching Game! Flip cards to find matching pairs! Remember their positions and match them all to win! Test your memory skills and have fun!'),
-                                    contentTextStyle: TextStyle(
-                                      fontSize: 20,
-                                      color: Colors.black54,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Alegreya',
-                                    ),
-                                    title: Center(
-                                        child: Text('How To Play')
-                                    ),
-                                    titleTextStyle: TextStyle(
-                                      fontSize: 25,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Alegreya',
-                                    ),
-                                    actions: [
-                                      Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(bottom: 40),
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                                backgroundColor: Color(0xFF8E97FD)),
-                                            onPressed: (){
-                                              Navigator.pushNamed(context, Home.id);
-                                            },
-                                            child: Text(
-                                              'Start the Game',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontFamily: 'Alegreya',
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 22,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                });
-                              },
-                              child: Icon(
-                                Icons.arrow_forward_ios,
-                                size: 25,
-                              ),
+                                onTap: (){
+                                  Navigator.pushNamed(context, Home.id);
+                                },
+                                child: gameList(image:'images/alphabet.png', name: 'Memory Matching ', icon: Icons.arrow_forward_ios)
                             ),
                           ],
                         ),
@@ -179,57 +116,12 @@ class _mindGameState extends State<mindGame> {
 
                       //tetirs
                       GestureDetector(
-                          child: gameList(image:'images/puzzle.jpg', name: 'Block Puzzle', icon: Icons.arrow_forward_ios),
-                        onTap: (){
-                          showDialog(context: context, builder: (BuildContext context){
-                            return AlertDialog(
-                              backgroundColor: Colors.white,
-                              content: Text(
-                                'Welcome to Block Puzzle Game! Arrange blocks to clear one row and score points. Can you clear rows and reach a high score? Have fun playing!',
-                                textAlign: TextAlign.justify,
-                              ),
-                              contentTextStyle: TextStyle(
-                                fontSize: 20,
-                                color: Colors.black54,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Alegreya',
-                              ),
-                              title: Center(
-                                  child: Text('How To Play')
-                              ),
-                              titleTextStyle: TextStyle(
-                                fontSize: 25,
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Alegreya',
-                              ),
-                              actions: [
-                                Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(bottom: 40),
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: Color(0xFF8E97FD)),
-                                      onPressed: (){
-                                        Navigator.pushNamed(context, GameBoard.id);
-                                      },
-                                      child: Text(
-                                        'Start the Game',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontFamily: 'Alegreya',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 22,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          });
-                        },
-                      ),
+                          onTap: (){
+                            Navigator.pushNamed(context, puzzleHome.id);
+                          },
+                          child: gameList(image: 'images/puzzle.jpg', name: 'Puzzle', icon: Icons.arrow_forward_ios)),
+
+
                     ],
                   ),
                 )
